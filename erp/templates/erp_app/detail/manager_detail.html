@@ -1,0 +1,46 @@
+{% extends "erp_app/_base.html" %}
+
+{% block title %}
+{{manager.name}}
+{% endblock title %}
+
+{% block content %}
+    <div class="flex justify-start items-start flex-col">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="relative inline-flex items-center justify-center w-40 h-40 overflow-hidden bg-gray-400 rounded-full dark:bg-gray-900">
+                <span class="font-xl text-4xl text-gray-700 dark:text-gray-400">{{manager.name|slice:":2"|upper}}</span>
+            </div>
+            <div class="font-medium dark:text-white">
+                <div class="text-lg">{{ manager.name|upper }}</div>
+                <div class="text-base text-gray-500 dark:text-gray-400">Lease Manager ID: {{manager.id}}</div>
+                <div class="text-base text-gray-500 dark:text-gray-400">Total Revenue: {{ total_revenue }}</div>
+            </div>
+        </div>
+        
+
+
+        <div class="inline-flex rounded-md shadow-sm mb-5" role="group">
+            <button type="button" data-modal-target="crud-modal" data-modal-toggle="crud-modal" class="px-4 py-2 text-sm font-medium text-gray-900 bg-blue border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+                Generate Report
+            </button>
+            <button data-modal-target="add_property_modal" data-modal-toggle="add_property_modal" class="px-4 py-2 text-sm font-medium text-gray-900 bg-green border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+              Add Property
+            </button>
+            <button onclick="window.location.href='{% url 'find_vacant_units_view' manager.id %}'" class="px-4 py-2 text-sm font-medium text-gray-900 bg-red border-t border-b border-gray-200 hover:bg-red-100 hover:text-red-700 focus:z-10 focus:ring-2 focus:ring-white-700 focus:text-white-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+                Find Vacant
+            </button>
+            <button onclick="window.location.href='{% url 'find_overdue_view' manager.id %}'" class="px-4 py-2 text-sm font-medium text-gray-900 bg-red border-t border-b border-gray-200 hover:bg-red-100 hover:text-red-700 focus:z-10 focus:ring-2 focus:ring-white-700 focus:text-white-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+                Find Overdue
+            </button>
+
+        </div>
+
+    </div>
+        {% include "erp_app/components/property_table.html" %}
+    </div>
+
+{% include "erp_app/modals/generate_lease_expiry_report.html" %}
+{% include "erp_app/modals/add_property_to_manager.html" %}
+
+
+{% endblock content %}

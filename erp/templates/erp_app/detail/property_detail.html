@@ -1,0 +1,34 @@
+{% extends "erp_app/_base.html" %}
+
+{% block title %}
+Property {{property.address}}
+{% endblock title %}
+
+{% block content %}
+{% include "erp_app/components/alert_popup.html" %}
+<div class="join mx-2 my-2"> 
+    <a href="{% url 'property_add_tenant_view' property.id %}">
+        <button 
+            class="mt-4 text-white btn btn-primary bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md join-item w-auto">
+            Add Tenant
+        </button>
+    </a>
+    <a href="{% url 'property_remove_tenant_view' property.id %}">
+        <button 
+            class="mt-4 text-white btn btn-primary bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md join-item w-auto">
+            Remove Tenant
+        </button>
+    </a>
+    <a href="{% url 'property_add_unit_room_view' property.id %}">
+        <button 
+            class="mt-4 text-white btn btn-primary bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md join-item w-auto">
+            Add Room
+        </button>
+    </a>
+</div>
+Property: {{property.address}} <br>
+Property type: {{property.property_type}} <br>
+Property Units: {{property.units}} <br>
+Current Units: {{property.current_units}} <br>
+{% include "erp_app/components/unit_rooms_table.html" %}
+{% endblock content %}

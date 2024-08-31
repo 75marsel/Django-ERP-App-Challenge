@@ -1,0 +1,17 @@
+{% extends "erp_app/_base.html" %}
+
+{% block title %} Property List {% endblock title %}
+
+{% block content %}
+{% include "erp_app/components/alert_popup.html" %}
+    <div class="join mx-2 my-2"> 
+        <a href="{% url 'tenant_view' %}">
+            <button 
+            class="mt-4 text-white btn btn-primary bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md join-item w-auto" 
+            >
+            Add Tenant
+            </button>
+        </a>
+    </div>
+    {% include "erp_app/components/tenants_table.html" %}
+{% endblock content %}
