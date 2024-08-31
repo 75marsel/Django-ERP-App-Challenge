@@ -1,4 +1,4 @@
-# JammizTechLabsCorp Technical Exam/Coding Challenge
+# JammizTechLabsCorp Technical Exam/Coding Challenge (Flowbite ver)
 
 By: Jeric Marcel Gappi
 
