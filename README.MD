@@ -21,7 +21,7 @@ class UnitRoom(models.Model):
         unit_number = models.CharField(max_length=10, primary_key=True, unique=True)
         tenant = models.ForeignKey(
             Tenant,
-            on_delete=models.CASCADE,
+            on_delete=models.SET_NULL,
             blank = True,
             null=True,
         )
