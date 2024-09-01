@@ -38,7 +38,6 @@ class Tenant(models.Model):
     name = models.CharField(
         max_length=NAME_MAX_LENGTH,
         validators=[name_validator],
-        db_index=True,
         # unique=True, # in some countries people have same names
     )
     
@@ -91,7 +90,6 @@ class Tenant(models.Model):
         max_length=10, 
         unique=False, 
         blank=False, 
-        db_index=True,
     )
     
     def save(self, *args, **kwargs):
@@ -146,7 +144,7 @@ class Property(models.Model):
     id = models.AutoField(primary_key=True, editable=False)
     # address of the property
     # the max length can be adjusted
-    address = models.CharField(max_length=200, unique=True, db_index=True,)
+    address = models.CharField(max_length=200, unique=True,)
     
     """
     Model Field Reference Documentation:
@@ -186,8 +184,7 @@ class Property(models.Model):
     
     units = models.IntegerField(validators=[
         MinValueValidator(MINIMUM_UNITS),
-        MaxValueValidator(MAXIMUM_UNITS),],
-        db_index=True,                            
+        MaxValueValidator(MAXIMUM_UNITS),],                          
     )
     
     current_units = models.IntegerField(validators=[
@@ -195,7 +192,6 @@ class Property(models.Model):
         MaxValueValidator(MAXIMUM_UNITS)
         ],
         default=0,
-        db_index=True,
     )
     
     """
@@ -344,7 +340,6 @@ class UnitRoom(models.Model):
     unit_number = models.CharField(
         max_length=10, 
         unique=True,
-        db_index=True,
     )
     
     tenant = models.ForeignKey(
