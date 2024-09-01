@@ -38,6 +38,7 @@ class Tenant(models.Model):
     name = models.CharField(
         max_length=NAME_MAX_LENGTH,
         validators=[name_validator],
+        db_index=True,
         # unique=True, # in some countries people have same names
     )
     
@@ -51,10 +52,11 @@ class Tenant(models.Model):
     """
     
     lease_start = models.DateTimeField(
+        db_index=True,
         # auto_now_add=True,
         # default=timezone.now
     )
-    lease_end = models.DateTimeField()
+    lease_end = models.DateTimeField(db_index=True,)
     
     # filler variable for rent due
     # this can have a small pay button to increase by 1 month
@@ -70,7 +72,8 @@ class Tenant(models.Model):
     
     monthly_rent = models.DecimalField(
         max_digits=14, # 000,000,000,000.00
-        decimal_places=2
+        decimal_places=2,
+        db_index=True,
     )
     
     """
@@ -84,7 +87,12 @@ class Tenant(models.Model):
 
     unit: The unit number occupied by the tenant (string).
     """
-    unit = models.CharField(max_length=10, unique=False, blank=False)
+    unit = models.CharField(
+        max_length=10, 
+        unique=False, 
+        blank=False, 
+        db_index=True,
+    )
     
     def save(self, *args, **kwargs):
         if not self.next_payment_due:
@@ -138,7 +146,7 @@ class Property(models.Model):
     id = models.AutoField(primary_key=True, editable=False)
     # address of the property
     # the max length can be adjusted
-    address = models.CharField(max_length=200, unique=True)
+    address = models.CharField(max_length=200, unique=True, db_index=True,)
     
     """
     Model Field Reference Documentation:
@@ -178,14 +186,16 @@ class Property(models.Model):
     
     units = models.IntegerField(validators=[
         MinValueValidator(MINIMUM_UNITS),
-        MaxValueValidator(MAXIMUM_UNITS)
-    ])
+        MaxValueValidator(MAXIMUM_UNITS),],
+        db_index=True,                            
+    )
     
     current_units = models.IntegerField(validators=[
         MinValueValidator(MINIMUM_UNITS),
         MaxValueValidator(MAXIMUM_UNITS)
         ],
-        default=0
+        default=0,
+        db_index=True,
     )
     
     """
@@ -331,13 +341,19 @@ class UnitRoom(models.Model):
     id = models.AutoField(primary_key=True, editable=False)
     
     # Unit Number for Tenant's unit attribute
-    unit_number = models.CharField(max_length=10, unique=True)
+    unit_number = models.CharField(
+        max_length=10, 
+        unique=True,
+        db_index=True,
+    )
+    
     tenant = models.ForeignKey(
         Tenant,
         on_delete=models.SET_NULL,
         blank = True,
         null=True,
         related_name='tenant',
+        db_index=True,
     )
     
     # Point where this unit room belongs
@@ -347,6 +363,7 @@ class UnitRoom(models.Model):
         blank=True,
         null=True,
         related_name='unit_rooms',
+        db_index=True,
     )
     
     def __str__(self) -> str:
