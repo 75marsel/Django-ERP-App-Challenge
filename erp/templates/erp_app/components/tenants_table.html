@@ -89,6 +89,9 @@
                     Lease End
                 </th>
                 <th scope="col" class="px-6 py-3">
+                    Next Payment Due
+                </th>
+                <th scope="col" class="px-6 py-3">
                     Monthly Rent
                 </th>
                 <th scope="col" class="px-6 py-3">
@@ -103,8 +106,8 @@
             </tr>
         </thead>
         <tbody>
-            {% if tenants %}
-                {% for tenant in tenants %}
+            {% if page_obj %}
+                {% for tenant in page_obj %}
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4">
                             {{ forloop.counter }}
@@ -120,6 +123,9 @@
                         </td>
                         <td class="px-6 py-4">
                             {{ tenant.lease_end }}
+                        </td>
+                        <td class="px-6 py-4 text-red-600">
+                            {{ tenant.next_payment_due }}
                         </td>
                         <td class="px-6 py-4">
                             {{ tenant.monthly_rent }}
@@ -148,3 +154,4 @@
         </tbody>
     </table>
 </div>
+{% include "erp_app/components/paginator.html" %}

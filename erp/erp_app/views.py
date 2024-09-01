@@ -1,20 +1,34 @@
+# routing and rendering
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+
+# class-based views
 from django.views import View
-from django.utils.timezone import make_naive
-from django.views.generic import CreateView
 from django.views.generic.edit import UpdateView
 from django.views.generic.list import ListView # all 
 from django.views.generic.detail import DetailView # single
-from .models import Property, Tenant, LeaseManager, UnitRoom
+from django.views.generic import CreateView
+
+# for datetime objects (allowing timezones and parsing as datetime)
+from django.utils.timezone import make_naive
+from django.utils.dateparse import parse_datetime
+
+# import messages for alerts in template
 from django.contrib import messages
+
+# pagination for tables
+from django.core.paginator import Paginator
+
+# import models
+from .models import Property, Tenant, LeaseManager, UnitRoom
+
+# import forms
 from .forms import (
     PropertyForm, TenantForm, UnitRoomForm, 
     PropertyAddTenantForm, LeaseManagerForm, PropertyAddUnitRoomForm,
     PropertyRemoveTenantForm, PropertyRemoveUnitRoomForm, GenerateLeaseExpiryReportForm,
     AddPropertyToLeaseManagerForm, AddUnitRoomToTenantForm, 
 )
-from django.utils.dateparse import parse_datetime
 
 
 def home(request):
@@ -79,6 +93,7 @@ def tenant_unit_room_remove_view(request, pk):
 # List of all Properties
 class PropertyListView(ListView):
     model = Property
+    paginate_by = 5
     template_name = "erp_app/list/property_list.html"
     context_object_name = "properties"
 
@@ -88,6 +103,30 @@ class PropertyDetailView(DetailView):
     model = Property
     template_name = "erp_app/detail/property_detail.html"
     context_object_name = "property"
+
+    # overwrite get context data in order for paginator to work for detail views
+    def get_context_data(self, **kwargs) -> dict:
+        # call and save the original and current context data to context variable
+        context = super().get_context_data(**kwargs)
+        # get and save the paginated unit rooms inside the context data
+        # the key will be the same default key provided by paginator on list views
+        context["page_obj"] = self.get_unit_rooms()
+        return context
+
+    # a helper function to get the paginated dataset
+    def get_unit_rooms(self):
+        # query all unit rooms of the current property model instance
+        # orderby is necessary to yield consistent result, "-id" for reverse
+        queryset = self.object.unit_rooms.all().order_by("id")
+        # create a paginator with the queryset with 5 items per page
+        paginator = Paginator(queryset, 5)
+        # get the "page" key from the request
+        page = self.request.GET.get("page")
+        # using the paginator, get the page 
+        unit_rooms = paginator.get_page(page)
+        # return the paginated result
+        return unit_rooms
+    
 
 # Add a tenant to a property
 class PropertyAddTenantView(UpdateView):
@@ -128,6 +167,7 @@ class PropertyAddTenantView(UpdateView):
 
         return response
 
+
 # Remove a tenant to a property
 class PropertyRemoveTenantView(UpdateView):
     model = Property
@@ -161,6 +201,7 @@ class PropertyRemoveTenantView(UpdateView):
             # self.object.save()
 
         return response
+
 
 # Add a room to a property
 class PropertyAddUnitRoomView(UpdateView):
@@ -201,6 +242,7 @@ class PropertyAddUnitRoomView(UpdateView):
 
         return response
     
+    
 # add a tenant using form
 class TenantCreateView(CreateView):
     model = Tenant
@@ -210,12 +252,14 @@ class TenantCreateView(CreateView):
     def get_success_url(self):
         return reverse("tenant_detail_all")
 
+
 # Add a unit room to a property using form (WILL CHANGE URL TO unit_room_form)
 class UnitRoomCreateView(CreateView):
     model = UnitRoom
     form_class = UnitRoomForm
     template_name = "erp_app/forms/unit_room_form.html"
     success_url = reverse_lazy("property_view_all")
+
 
 # Deletes a unit room in the database
 def delete_unit_room_view(request, property_id, id):
@@ -233,6 +277,7 @@ def delete_unit_room_view(request, property_id, id):
     
     return redirect('property_detail', pk=property_id)
 
+
 # deletes a property in the database 
 def property_delete_view(request, property_id):
     try:
@@ -248,6 +293,7 @@ def property_delete_view(request, property_id):
             messages.error(request, "Error Deleting Property!")
     
     return redirect('property_view_all')
+
 
 # deletes the tenant object
 def tenant_delete_view(request, tenant_id):
@@ -265,11 +311,14 @@ def tenant_delete_view(request, tenant_id):
     
     return redirect('tenant_detail_all')
 
+
 # list of all tenants (WILL CHANGE URL TO tenant)
 class TenantListView(ListView):
     model = Tenant
+    paginate_by = 5
     template_name = "erp_app/list/tenant_list.html"
     context_object_name = "tenants"
+
 
 # Specific detail of a tenant
 class TenantDetailView(DetailView):
@@ -297,7 +346,7 @@ class TenantDetailView(DetailView):
         
         return self.render_to_response(self.get_context_data(form=form_add))
     
-
+    
 # A VIEW FOR UPDATING THE LEASE END DATETIME OF A TENANT
 class TenantRenewLeaseView(View):
     def post(self, request, tenant_id):
@@ -309,12 +358,13 @@ class TenantRenewLeaseView(View):
             tenant.save()
         return redirect(reverse('tenant_detail', args=[tenant.id]))
     
-
+    
 # add a lease manager using forms
 class LeaseManagerCreateView(CreateView):
     model = LeaseManager
     form_class = LeaseManagerForm
     template_name = "erp_app/forms/lease_manager_form.html"
+    
     
 # delete a lease manager
 def lease_manager_remove_view(request, id):
@@ -332,7 +382,8 @@ def lease_manager_remove_view(request, id):
     
     return redirect('lease_manager_view')
 
-        
+
+# function-based view for the list of lease managers in erp
 def lease_manager_view(request):
     if request.method == "POST":
         form = LeaseManagerForm(request.POST, prefix="form")
@@ -347,12 +398,14 @@ def lease_manager_view(request):
     else:
         form = LeaseManagerForm(prefix="form")
 
-    lease_manager = LeaseManager.objects.all()  # Get all LeaseManager instances
+    lease_manager = LeaseManager.objects.all().order_by("id")  # Get all LeaseManager instances
     properties = Property.objects.all()  # Get all Property instances
-    
+    paginator = Paginator(lease_manager, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
     context = {
         "form": form,
-        "lease_manager": lease_manager,
+        "page_obj": page_obj,
         'properties': properties,
     }
     
@@ -360,6 +413,7 @@ def lease_manager_view(request):
 
 
 def generate_report_view(request, id):
+    print("in report ")
     property = get_object_or_404(Tenant, id=id)
     return render(
         request,
@@ -377,13 +431,26 @@ class LeaseManagerDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # add a key form to the context with this specific form
         context['form'] = GenerateLeaseExpiryReportForm(lease_manager=self.object, prefix="form")
+        # add a key form_add to the context with this specific form
         context["form_add"] = AddPropertyToLeaseManagerForm(lease_manager=self.object, prefix="form_add")
+        # add the total revenue to the context
         context["total_revenue"] = self.get_object().calculate_total_revenue()
         self.get_object().find_tenants_with_overdue_rent()
-        # print(context['form_add'])
+        # add a page_obj to the context for pagination
+        context["page_obj"] = self.get_paginated_properties()
         return context
 
+    # returns a paginated model of this lease manager's properties
+    # documentation: https://docs.djangoproject.com/en/5.1/topics/pagination/
+    def get_paginated_properties(self):
+        queryset = self.object.properties.all().order_by("id")
+        paginator = Paginator(queryset, 5)
+        page_number = self.request.GET.get("page")
+        return paginator.get_page(page_number)
+    
+    # overwrite the post of this view
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = GenerateLeaseExpiryReportForm(request.POST, lease_manager=self.object, prefix="form")
@@ -392,26 +459,30 @@ class LeaseManagerDetailView(DetailView):
         if "form" in request.POST and form.is_valid():
             start_lease_date = make_naive(form.cleaned_data['lease_start'])
             end_lease_date =  make_naive(form.cleaned_data['lease_end'])
+            
             tenants = self.object.generate_lease_expiry_report(
                 start_lease_date=start_lease_date, 
                 end_lease_date=end_lease_date,
                 properties=form.cleaned_data["properties"],
-                )
-               
-            if tenants:
-                properties = Property.objects.filter(tenants__in=tenants).distinct()
-                
-                context = {
-                    'tenants': tenants,
-                    'properties': properties,
-                    'lease_manager_id': self.object.id,
-                }
-                
-                return render(
-                    request, 
-                    'erp_app/reports/property_report.html', 
-                    context,
-                )
+                ).order_by("id")
+            
+            paginator = Paginator(tenants, 10)
+            page_number = request.GET.get("page")
+            page_obj = paginator.get_page(page_number)
+
+            # if tenants:
+            #     properties = Property.objects.filter(tenants__in=tenants).distinct()
+                    
+            context = {
+                'page_obj': page_obj,
+                'lease_manager_id': self.object.id,
+            }
+            
+            return render(
+                request, 
+                'erp_app/reports/property_report.html', 
+                context,
+            )
         elif "form_add" in request.POST and form_add.is_valid():
             self.object.add_property(form_add.cleaned_data["properties"])
             # messages.success(request, 'Lease Expiry Report generated successfully!')
@@ -419,28 +490,36 @@ class LeaseManagerDetailView(DetailView):
 
         return self.render_to_response(self.get_context_data(form=form))
     
-    
+# find the vacant properties of a lease manager
 def find_vacant_units_view(request, manager_id):
     lease_manager = LeaseManager.objects.get(id=manager_id)
     property = lease_manager.find_vacant_units()
+    paginator = Paginator(property, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
   
     return render(
         request,
         "erp_app/reports/vacant_units.html",
-        { "properties": property,},
+        { "page_obj": page_obj,},
     )
 
+# find the tenants under a specific lease manager with overdue rent
+# overdue rent is based on a hypothetical due date which is same-day pay per month 
 def find_tenants_with_overdue_rent_view(request, manager_id):
     lease_manager = LeaseManager.objects.get(id=manager_id)
     tenants = lease_manager.find_tenants_with_overdue_rent()
+    paginator = Paginator(tenants, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
   
     return render(
         request,
         "erp_app/reports/overdue_rent.html",
-        { "tenants": tenants,},
+        { "page_obj": page_obj,},
     )
     
-
+# calculate the total revenue based off the current monthly rent of given Lease Manager's tenants
 def calculate_total_revenue_view(manager_id):
     lease_manager = LeaseManager.objects.get(id=manager_id)
     total = 0

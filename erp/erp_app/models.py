@@ -9,7 +9,7 @@ from django.core.validators import (
     )
 # implement a uuid for 
 from django.utils.timezone import make_aware
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 
 
@@ -56,6 +56,13 @@ class Tenant(models.Model):
     )
     lease_end = models.DateTimeField()
     
+    # filler variable for rent due
+    # this can have a small pay button to increase by 1 month
+    next_payment_due = models.DateTimeField(
+        blank=True,
+        null=True,
+    )
+    
     """
     max_digits: 14 (billion)
     monthly_rent: Monthly rent paid by the tenant (float).
@@ -78,6 +85,11 @@ class Tenant(models.Model):
     unit: The unit number occupied by the tenant (string).
     """
     unit = models.CharField(max_length=10, unique=False, blank=False)
+    
+    def save(self, *args, **kwargs):
+        if not self.next_payment_due:
+            self.next_payment_due = self.lease_start + timedelta(days=31)
+        super(Tenant, self).save(*args, **kwargs)
     
     def renew_lease(self, extended_date: datetime) -> None:
         extended_date = make_aware(extended_date)
@@ -421,11 +433,18 @@ class LeaseManager(models.Model):
     # find and return a list of tenants that their lease_end is past by the current date
     
     def find_tenants_with_overdue_rent(self) -> list[Tenant]:
+        # create a list of tenants with overdue rents
         overdue_tenants = []
+        # fetch the current datetime 
         current_date = timezone.now()
+        
+        # loop through every properties of the lease manager
         for p in self.properties.all():
+            # loop through every tenants of that property
             for tenant in p.tenants.all():
-                if tenant.lease_end < current_date:
+                # check if the next payment due date is already past the current date
+                if current_date > tenant.next_payment_due:
+                    # add the tenant object to the list
                     overdue_tenants.append(tenant)
 
         return overdue_tenants
