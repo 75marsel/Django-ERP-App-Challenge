@@ -520,9 +520,9 @@ def find_tenants_with_overdue_rent_view(request, manager_id):
     )
     
 # calculate the total revenue based off the current monthly rent of given Lease Manager's tenants
-def calculate_total_revenue_view(manager_id):
-    lease_manager = LeaseManager.objects.get(id=manager_id)
-    total = 0
-    for p in lease_manager.properties.all():
-        total += p.calculate_total_rent()
-    return total
+# def calculate_total_revenue_view(manager_id):
+#     lease_manager = LeaseManager.objects.get(id=manager_id)
+#     total = 0
+#     for p in lease_manager.properties.all():
+#         total += p.calculate_total_rent()
+#     return total

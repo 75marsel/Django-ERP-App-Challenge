@@ -252,7 +252,7 @@ class Property(models.Model):
             raise ValidationError("wRONG FIELDS!")
         print(self.current_units)
     
-# Removes the passed tenant object from the tenants attribute and also removes the tenant's room
+    # Removes the passed tenant object from the tenants attribute and also removes the tenant's room
     def remove_tenant(self, tenant):
         if tenant and self.current_units > 0:
             # Remove the tenant from the tenants list
@@ -291,9 +291,14 @@ class Property(models.Model):
     # documentation for complex queries: https://docs.djangoproject.com/en/5.1/topics/db/queries/#complex-lookups-with-q-objects
 
     def calculate_total_rent(self):
-        total = self.tenants.filter(~Q(unit=None)).aggregate(
-            total_units=Sum("monthly_rent")
-        )["total_units"] or 0
+        this_month = timezone.now().replace(day=1)
+        total = self.tenants.filter(
+            lease_end__gte=this_month  # Lease end date should be today or later
+        ).exclude(
+            unit=''  # Exclude tenants with an empty unit
+        ).aggregate(
+            total_units=Sum('monthly_rent')
+        )['total_units'] or 0
         return total
 
     def get_number_of_vacant_units(self):
@@ -426,7 +431,7 @@ class LeaseManager(models.Model):
     
     def calculate_total_revenue(self) -> int:
         total = 0
-        for p in self.properties.all():
+        for p in self.properties.all(): # filter to show only the properties with lease end that is within this month and not last month
             total += p.calculate_total_rent()
         return total
     

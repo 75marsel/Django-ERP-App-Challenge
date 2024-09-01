@@ -79,7 +79,7 @@ urlpatterns = [
     path("manager/detail/<int:manager_id>/find_vacant/", views.find_vacant_units_view, name="find_vacant_units_view"),
     
     # calculate total revenue towards every property of the lease manager
-    path("manager/detail/<int:pk>/revenue", views.calculate_total_revenue_view, name="total_revenue_view"),
+    # path("manager/detail/<int:pk>/revenue", views.calculate_total_revenue_view, name="total_revenue_view"),
 
     # overdue rent 
     path("manager/detail/<int:manager_id>/overdue/", views.find_tenants_with_overdue_rent_view, name="find_overdue_view"),
