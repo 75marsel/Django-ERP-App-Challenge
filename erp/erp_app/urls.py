@@ -37,7 +37,7 @@ urlpatterns = [
     path("tenant/", views.TenantCreateView.as_view(), name="tenant_view"),
     
     # list of all tenants (WILL CHANGE URL TO tenant)
-    path("tenant/list", views.TenantListView.as_view(), name="tenant_detail_all"),
+    path("tenant/list/", views.TenantListView.as_view(), name="tenant_detail_all"),
     
     # Specific detail of a tenant
     path("tenant/profile/<int:pk>/", views.TenantDetailView.as_view(), name="tenant_detail"),
@@ -83,4 +83,7 @@ urlpatterns = [
 
     # overdue rent 
     path("manager/detail/<int:manager_id>/overdue/", views.find_tenants_with_overdue_rent_view, name="find_overdue_view"),
+
+    # API Endpoint
+    path("api/", views.TenantListAPIView.as_view(), name="tenant-api"),
 ]

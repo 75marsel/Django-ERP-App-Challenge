@@ -1,8 +1,15 @@
 {% extends "erp_app/_base.html" %}
 
-{% block title %} Property List {% endblock title %}
+{% block title %} Tenant List {% endblock title %}
 
 {% block content %}
+{% comment %} {% if form %}
+<form method="GET" action="{% url 'tenant_detail_all' %}">
+    {{form.as_p}}
+    {{ filter.form.ordering }}
+    <input type="submit" value="Submit">
+</form>
+{% endif %} {% endcomment %}
 {% include "erp_app/components/alert_popup.html" %}
     <div class="join mx-2 my-2"> 
         <a href="{% url 'tenant_view' %}">

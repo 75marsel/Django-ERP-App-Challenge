@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     "erp_app", # ERP Application
     "compressor", # For tailwind and flowbite
     "debug_toolbar",
+    "rest_framework",
+    "django_filters",
 ]
 
 MIDDLEWARE = [
