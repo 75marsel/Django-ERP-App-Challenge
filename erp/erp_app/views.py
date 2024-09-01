@@ -19,6 +19,10 @@ from django.contrib import messages
 # pagination for tables
 from django.core.paginator import Paginator
 
+# redis and django caching
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+
 # import models
 from .models import Property, Tenant, LeaseManager, UnitRoom
 
@@ -59,6 +63,7 @@ def property_remove_view(request, lm_id, property_id):
     
     return redirect('lease_manager_detail', pk=lm_id)
 
+
 def unit_room_delete_view(request, room_id):
     unit_room = get_object_or_404(UnitRoom, id=room_id)
     property_id = unit_room.property.id
@@ -91,6 +96,7 @@ def tenant_unit_room_remove_view(request, pk):
  
 
 # List of all Properties
+@method_decorator(cache_page(60 * 15), name='dispatch')
 class PropertyListView(ListView):
     model = Property
     paginate_by = 5
@@ -313,6 +319,7 @@ def tenant_delete_view(request, tenant_id):
 
 
 # list of all tenants (WILL CHANGE URL TO tenant)
+@method_decorator(cache_page(60 * 15), name='dispatch')
 class TenantListView(ListView):
     model = Tenant
     paginate_by = 5

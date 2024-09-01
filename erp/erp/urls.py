@@ -16,9 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+import debug_toolbar
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include("erp_app.urls")),
     # path('__reload__/', include("django_browser_reload.urls")), # auto reload after save
+    path("__debug__/", include(debug_toolbar.urls))
 ]
