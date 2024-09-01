@@ -85,5 +85,8 @@ urlpatterns = [
     path("manager/detail/<int:manager_id>/overdue/", views.find_tenants_with_overdue_rent_view, name="find_overdue_view"),
 
     # API Endpoint
-    path("api/", views.TenantListAPIView.as_view(), name="tenant-api"),
+    path("api/tenant/", views.TenantListAPIView.as_view(), name="tenant-api"),
+ 
+    # API Endpoint - Sort Property
+    path("api/property/", views.PropertyListAPIView.as_view(), name="property-api"),
 ]

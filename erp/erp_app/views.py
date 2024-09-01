@@ -26,11 +26,11 @@ from django.views.decorators.cache import cache_page
 
 # Filters
 from django_filters.rest_framework import DjangoFilterBackend
-from erp_app.filters import TenantFilter
+from erp_app.filters import TenantFilter, PropertyFilter
 
 # Rest framework
 from rest_framework.generics import ListAPIView
-from erp_app.serializers import TenantSerializer
+from erp_app.serializers import TenantSerializer, PropertySerializer
 
 # import models
 from .models import Property, Tenant, LeaseManager, UnitRoom
@@ -105,12 +105,24 @@ def tenant_unit_room_remove_view(request, pk):
  
 
 # List of all Properties
-@method_decorator(cache_page(60 * 15), name='dispatch')
+# @method_decorator(cache_page(60 * 15), name='dispatch')
 class PropertyListView(ListView):
     model = Property
     paginate_by = 5
     template_name = "erp_app/list/property_list.html"
     context_object_name = "properties"
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        self.filterset = PropertyFilter(self.request.GET, queryset=queryset)
+        print(self.request.GET.get('ordering', ''))
+        return self.filterset.qs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.filterset.form
+        return context
+    
 
 # Specific detail of a property
 # includes property attributes, tenants, rooms
@@ -575,3 +587,9 @@ class TenantListAPIView(ListAPIView):
     serializer_class = TenantSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TenantFilter
+
+class PropertyListAPIView(ListAPIView):
+    queryset = Property.objects.all()
+    serializer_class = PropertySerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = PropertyFilter
